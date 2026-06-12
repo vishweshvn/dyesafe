@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DyeSafe | Food Color Chemical Scanner & Warning System</title>
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon">☣</span>
+            <h1>Dye<span>Safe</span></h1>
+        </div>
+        <p class="tagline">Exposing synthetic chemicals in colorful treats</p>
+    </header>
+
+    <main class="app-container">
+        <!-- LEFT: Scanner Viewport -->
+        <section class="scanner-section card">
+            <div class="card-header">
+                <h2>1. Capture & Select Color</h2>
+                <p class="step-desc">Point at a colorful dessert, click Capture, and tap on a vibrant color to analyze its chemicals.</p>
+            </div>
+
+            <!-- Viewport Container -->
+            <div class="viewport-wrapper">
+                <!-- Video Stream View -->
+                <div class="viewport-container active" id="camera-viewport">
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <!-- Laser Scanner Line -->
+                    <div class="laser-line"></div>
+                    <!-- Camera HUD overlay -->
+                    <div class="hud-overlay">
+                        <div class="hud-corner top-left"></div>
+                        <div class="hud-corner top-right"></div>
+                        <div class="hud-corner bottom-left"></div>
+                        <div class="hud-corner bottom-right"></div>
+                        <div class="hud-text">CAMERA LIVE</div>
+                    </div>
+                </div>
+
+                <!-- Image Upload / Frozen View -->
+                <div class="viewport-container" id="static-viewport">
+                    <img id="preview-image" alt="Scanned food preview">
+                    <!-- Tap target pointer icon -->
+                    <div id="color-picker-target" class="color-picker-target hidden">
+                        <div class="target-ring"></div>
+                        <div class="target-center"></div>
+                    </div>
+                </div>
+
+                <!-- Canvas for processing (hidden) -->
+                <canvas id="analysis-canvas"></canvas>
+            </div>
+
+            <!-- Scanner Controls -->
+            <div class="controls-panel">
+                <!-- Camera Controls -->
+                <div class="camera-controls-group" id="camera-controls">
+                    <button class="btn btn-primary" id="btn-capture">
+                        <span class="icon">📷</span> Capture Frame
+                    </button>
+                    <button class="btn btn-secondary" id="btn-toggle-camera">
+                        <span class="icon">🔄</span> Switch Camera
+                    </button>
+                </div>
+
+                <!-- Frozen Frame Controls -->
+                <div class="static-controls-group hidden" id="static-controls">
+                    <button class="btn btn-accent" id="btn-recapture">
+                        <span class="icon">↩</span> Reset Camera
+                    </button>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="upload-divider">
+                    <span>or upload a photo</span>
+                </div>
+
+                <div class="file-upload-wrapper">
+                    <input type="file" id="file-input" accept="image/*">
+                    <label for="file-input" class="btn btn-outline" id="file-label">
+                        <span class="icon">📁</span> Choose Image File
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: Chemical Analysis & Health Warnings -->
+        <section class="analysis-section" id="analysis-dashboard">
+            <!-- Default Welcome Card -->
+            <div class="welcome-card card" id="welcome-card">
+                <div class="welcome-icon">🎨</div>
+                <h2>Waiting for Scan</h2>
+                <p>Cakes and ice creams are often made with artificial food dyes derived from petroleum. Many of these chemicals are banned or heavily restricted globally due to behavioral and health risks.</p>
+                <div class="tips-box">
+                    <h3>💡 How to scan:</h3>
+                    <ul>
+                        <li>Align the colorful cake or ice cream in the camera.</li>
+                        <li>Click <strong>Capture Frame</strong> (or upload a photo).</li>
+                        <li><strong>Tap/Click directly on a bright color</strong> (e.g., pink icing, blue sprinkles) in the photo to run the chemical analysis!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Analysis Dashboard Details (Hidden by default, shown when color selected) -->
+            <div class="results-wrapper hidden" id="results-wrapper">
+                
+                <!-- Swatch and Dye Identification -->
+                <div class="card analysis-header-card">
+                    <div class="dye-identity-flex">
+                        <div class="swatch-container">
+                            <div id="color-swatch" class="color-swatch"></div>
+                            <span id="color-hex" class="color-hex">#FF0000</span>
+                        </div>
+                        <div class="dye-info">
+                            <span class="category-badge">DETECTED DYE</span>
+                            <h2 id="dye-name">Red 40 (Allura Red AC)</h2>
+                            <p class="chemical-formula">Formula: <span id="dye-formula">C18H14N2Na2O8S2</span> | Class: <span id="dye-class">Azo Dye</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cigarette-Packet Warning Graphic -->
+                <div class="warning-graphic-card" id="warning-graphic-card">
+                    <div class="warning-header">HEALTH WARNING</div>
+                    <div class="warning-content-flex">
+                        <div class="warning-image-box">
+                            <img id="warning-image" src="" alt="Health hazard visual warning">
+                        </div>
+                        <div class="warning-text-box">
+                            <h3 id="warning-title">TOXIC STRESS WARNING</h3>
+                            <p id="warning-desc">This chemical color is linked to cellular damage, stomach lining irritation, and liver inflammation in lab studies.</p>
+                            <span class="warning-footer">DYE-SAFE PUBLIC HEALTH ADVISORY</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Chemical Profile & Health Risks -->
+                <div class="card detail-card">
+                    <h3>Chemical Toxicity Report</h3>
+                    <div class="report-grid">
+                        <div class="report-item">
+                            <span class="report-label">Common Name:</span>
+                            <span class="report-value" id="dye-common-name">Allura Red AC</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="report-label">IUPAC Name:</span>
+                            <span class="report-value" id="dye-iupac">Disodium 6-hydroxy-5-((2-methoxy-5-methyl-4-sulfonatophenyl)azo)naphthalene-2-sulfonate</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="report-label">Origins:</span>
+                            <span class="report-value" id="dye-source">Coal Tar / Petroleum Derivative</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="report-label">Risk Level:</span>
+                            <span class="risk-indicator" id="dye-risk-indicator">HIGH RISK</span>
+                        </div>
+                    </div>
+
+                    <div class="danger-bullets">
+                        <h4>Associated Health Risks:</h4>
+                        <ul id="dye-hazards-list">
+                            <li>Triggers hyperactivity, impulsivity, and ADHD symptoms in young children.</li>
+                            <li>May contain carcinogenic contaminants such as p-Cresidine.</li>
+                            <li>Causes hypersensitivity, hives, and breathing difficulties in asthma patients.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Global Ban Status -->
+                <div class="card restriction-card">
+                    <h3>Global Regulatory Status</h3>
+                    <div class="restriction-flex">
+                        <div class="restriction-badge" id="badge-eu">
+                            <span class="flag">🇪🇺</span>
+                            <span class="region">EU</span>
+                            <span class="status-text" id="status-eu">Warning Label Required</span>
+                        </div>
+                        <div class="restriction-badge" id="badge-us">
+                            <span class="flag">🇺🇸</span>
+                            <span class="region">USA</span>
+                            <span class="status-text" id="status-us">FDA Approved</span>
+                        </div>
+                        <div class="restriction-badge" id="badge-intl">
+                            <span class="flag">🌐</span>
+                            <span class="region">Other</span>
+                            <span class="status-text" id="status-intl">Restricted in UK</span>
+                        </div>
+                    </div>
+                    <p class="restriction-note" id="restriction-note">
+                        In the European Union, products containing this dye must carry the warning label: <strong>"May have an adverse effect on activity and attention in children."</strong>
+                    </p>
+                </div>
+
+                <!-- Healthy Organic Alternatives -->
+                <div class="card healthy-swap-card">
+                    <div class="swap-header">
+                        <span class="swap-icon">🌱</span>
+                        <h3>Healthy Organic Swap</h3>
+                    </div>
+                    <p class="swap-intro">You can achieve this same beautiful color using natural, vitamin-rich organic plant sources!</p>
+                    <div class="swap-details">
+                        <div class="swap-item">
+                            <strong>Recommended Natural Dye:</strong>
+                            <span id="swap-dye">Organic Beetroot Juice / Powder</span>
+                        </div>
+                        <div class="swap-item">
+                            <strong>Recipe:</strong>
+                            <span id="swap-recipe">Simmer grated fresh beetroot in water, strain, and use the concentrated juice. For powdered icing, blend freeze-dried beetroot powder with organic powdered sugar.</span>
+                        </div>
+                        <div class="swap-benefits">
+                            <strong>Health Benefits:</strong>
+                            <span id="swap-benefits">Rich in antioxidants, nitrate compounds for blood circulation, and contains zero synthetic additives.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>This application is for educational purposes to create awareness about artificial food additives. Check food ingredient labels for precise chemical identification.</p>
+    </footer>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
